@@ -25,9 +25,11 @@ class Server:
         self.reference_timestamp = self.get_time_per_second_from_start_point(self.start_server_time)
 
     def start_server(self):
+        print('server  started')
         while True:
             try:
                 conn, addr = self.sock.accept()
+                print(addr[0])
                 self.connections[addr[0]] = conn
                 self.connections[addr[0]].setblocking(0)
             except socket.error:

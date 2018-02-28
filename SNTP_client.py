@@ -12,5 +12,5 @@ client.send(data)
 data, address = client.recvfrom(1024)
 if data:
     t = struct.unpack('!12I', data)[10]
-    print('\tTime=%s' % time.ctime(t))
-    print(datetime.datetime.now())
+    print('Time_from_server=%s' % time.ctime(t))
+    print('Time_now=%s' % datetime.datetime.now())
