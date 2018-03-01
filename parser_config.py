@@ -8,7 +8,6 @@ class ParserConfig:
         self.path = path_config
         self.ip_address = "0.0.0.0"
         self.wrong_time = 0
-        self.count_client = 1
 
     def parse(self):
         with open(self.path, 'r') as conf_file:
@@ -21,8 +20,6 @@ class ParserConfig:
                 self.ip_address = line_data[1].strip(ignore_char)
             if name_field == 'wrong_time':
                 self.wrong_time = self.try_get_value(line_data[1], ignore_char)
-            if name_field == 'count_client':
-                self.count_client = self.try_get_value(line_data[1], ignore_char)
 
     def try_get_value(self, value, ignore_char):
         try:

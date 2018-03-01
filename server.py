@@ -3,18 +3,16 @@ import math
 import socket
 import time
 import parser_config
-
+import hashlib
 
 class Server:
 
-    def __init__(self, count_of_listen, server_address, seconds_of_lies):
+    def __init__(self, server_address, seconds_of_lies):
         self.seconds_of_lies = seconds_of_lies
-        self.sock = socket.socket(socket.SOCK_DGRAM)
+        self.sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
         self.server_address = server_address
         self.sock.bind((self.server_address, 123))
-        self.sock.listen(count_of_listen)
         self.connections = {}
-        self.sock.setblocking(0)
 
         self.LI = 128
         self.Mode = 4
@@ -25,24 +23,15 @@ class Server:
         self.reference_timestamp = self.get_time_per_second_from_start_point(self.start_server_time)
 
     def start_server(self):
-        print('server  started')
+        print('Server was started')
         while True:
             try:
-                conn, addr = self.sock.accept()
-                print(addr[0])
-                self.connections[addr[0]] = conn
-                self.connections[addr[0]].setblocking(0)
+                data, addr = self.sock.recvfrom(48)
+                if len(data) < 48:
+                    continue
+                self.send_time(addr, data, datetime.datetime.now(tz=datetime.timezone.utc))
             except socket.error:
                 continue
-            for connected_clients_addr, conn in self.connections.items():
-                try:
-                    data = conn.recv(48)
-                    if not data:
-                        self.connections.pop(connected_clients_addr).close()
-                        continue
-                    self.send_time(conn, data, datetime.datetime.now(tz=datetime.timezone.utc))
-                except socket.error:
-                    continue
 
     def get_sntp_frame(self, data_from_request, receive_time):
         sntp_frame = bytearray()
@@ -64,6 +53,11 @@ class Server:
         transmit_time = self.get_time_per_second_from_start_point(datetime.datetime.now(tz=datetime.timezone.utc),
                                                                   self.seconds_of_lies)
         sntp_frame += transmit_time[0] + transmit_time[1]
+        #hash_frame = hashlib.md5()
+        #hash_frame.update(sntp_frame)
+        #sntp_frame += str(hash_frame.hexdigest()).encode('utf-8')
+        #sntp_frame += hash_frame.digest()
+        #print(len(sntp_frame))
         return sntp_frame
 
     def get_vn_from_client(self, first_byte_from_client_title_frame):
@@ -75,9 +69,9 @@ class Server:
         milliseconds_to_byte = (int(str(difference).split('.')[1])).to_bytes(4, 'big')
         return second_to_byte, milliseconds_to_byte
 
-    def send_time(self, conn, data, receive_time):
+    def send_time(self, addr, data, receive_time):
         sntp_frame = self.get_sntp_frame(data, receive_time)
-        conn.send(sntp_frame)
+        self.sock.sendto(sntp_frame, addr)
 
 
 if __name__ == '__main__':
@@ -86,5 +80,5 @@ if __name__ == '__main__':
         pars.parse()
     except parser_config.ParserException as exc:
         print("Exception in config file, server will be start with default config")
-    serv = Server(pars.count_client, pars.ip_address, pars.wrong_time)
+    serv = Server(pars.ip_address, pars.wrong_time)
     serv.start_server()
