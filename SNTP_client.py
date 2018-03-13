@@ -4,9 +4,9 @@ import struct
 import time
 from socket import *
 
-client = socket(SOCK_DGRAM)
+ip = '127.0.0.2'
+client = socket(AF_INET, SOCK_DGRAM)
 data = ('\x1b' + 47 * '\0').encode('utf-8')
-ip = input()
 client.connect((ip, 123))
 client.send(data)
 data, address = client.recvfrom(1024)
