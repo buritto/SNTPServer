@@ -50,7 +50,7 @@ class Server:
         for i in range(0, 8):
             originate_timestamp += data_from_request[40 + i].to_bytes(1, 'big')
         sntp_frame += originate_timestamp
-        receive_time_per_byte = self.get_time_per_second_from_start_point(receive_time)
+        receive_time_per_byte = self.get_time_per_second_from_start_point(receive_time, self.seconds_of_lies)
         sntp_frame += receive_time_per_byte[0] + receive_time_per_byte[1]
         transmit_time = self.get_time_per_second_from_start_point(datetime.datetime.now(tz=datetime.timezone.utc),
                                                                   self.seconds_of_lies)
